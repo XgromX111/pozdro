@@ -35,39 +35,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Email validation function
     async function validateEmail(email) {
-        // Basic email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return { valid: false, error: 'Nieprawidłowy format adresu email' };
-        }
+        try {
+            const response = await fetch('validate_email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ email })
+            });
 
-        // Extract domain from email
-        const domain = email.split('@')[1].toLowerCase();
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
 
-        // List of disposable email domains
-        const disposableDomains = [
-            'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'throwawaymail.com',
-            'yopmail.com', 'mailinator.com', '10minutemail.com', 'trashmail.com',
-            'sharklasers.com', 'guerrillamail.info', 'grr.la', 'maildrop.cc',
-            'getairmail.com', 'getnada.com', 'emailondeck.com', 'tempmail.net',
-            'dispostable.com', 'tempmailaddress.com', 'emailfake.com', 'fakeinbox.com'
-        ];
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error validating email:', error);
+            
+            // Fallback to client-side validation if server validation fails
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return { valid: false, error: 'Nieprawidłowy format adresu email' };
+            }
 
-        // Check for disposable email domains
-        if (disposableDomains.includes(domain)) {
-            return { valid: false, error: 'Tymczasowe adresy email nie są dozwolone' };
-        }
+            const domain = email.split('@')[1].toLowerCase();
+            const disposableDomains = [
+                'tempmail.com', 'temp-mail.org', 'guerrillamail.com', 'throwawaymail.com',
+                'yopmail.com', 'mailinator.com', '10minutemail.com', 'trashmail.com',
+                'sharklasers.com', 'guerrillamail.info', 'grr.la', 'maildrop.cc',
+                'getairmail.com', 'getnada.com', 'emailondeck.com', 'tempmail.net',
+                'dispostable.com', 'tempmailaddress.com', 'emailfake.com', 'fakeinbox.com'
+            ];
 
-        // List of common email providers
-        const commonProviders = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'wp.pl', 'o2.pl', 'interia.pl', 'onet.pl'];
-        
-        // If domain is a common provider, consider it valid
-        if (commonProviders.includes(domain)) {
+            if (disposableDomains.includes(domain)) {
+                return { valid: false, error: 'Tymczasowe adresy email nie są dozwolone' };
+            }
+
             return { valid: true, error: '' };
         }
-
-        // For non-common providers, we'll still consider it valid but with a warning
-        return { valid: true, error: '' };
     }
 
     authForm.addEventListener('submit', async (e) => {
