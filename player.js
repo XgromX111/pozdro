@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     // Check if user is logged in
     const currentUser = session.get();
     
@@ -41,45 +41,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('movieYear').textContent = movie.year;
         document.getElementById('movieGenre').textContent = movie.genre;
         document.getElementById('movieDescription').textContent = movie.description;
-
-        // Setup watchlist button
-        const watchlistButton = document.querySelector('.action-buttons .btn-secondary');
-        if (watchlistButton) {
-            // Check if movie is in watchlist
-            const inWatchlist = await isInWatchlist(movieId);
-            
-            // Update button appearance
-            watchlistButton.className = `btn ${inWatchlist ? 'btn-primary' : 'btn-secondary'}`;
-            watchlistButton.innerHTML = `
-                <i data-lucide="${inWatchlist ? 'check' : 'plus'}"></i>
-                <span>${inWatchlist ? 'Usuń z listy' : 'Dodaj do listy'}</span>
-            `;
-            lucide.createIcons();
-
-            // Add click handler
-            watchlistButton.onclick = async (e) => {
-                e.preventDefault();
-                if (!currentUser) {
-                    window.location.href = `Logowanie.html?returnUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
-                    return;
-                }
-                
-                if (await isInWatchlist(movieId)) {
-                    await removeFromWatchlist(movieId);
-                } else {
-                    await addToWatchlist(movieId);
-                }
-                
-                // Update button state after action
-                const newInWatchlist = await isInWatchlist(movieId);
-                watchlistButton.className = `btn ${newInWatchlist ? 'btn-primary' : 'btn-secondary'}`;
-                watchlistButton.innerHTML = `
-                    <i data-lucide="${newInWatchlist ? 'check' : 'plus'}"></i>
-                    <span>${newInWatchlist ? 'Usuń z listy' : 'Dodaj do listy'}</span>
-                `;
-                lucide.createIcons();
-            };
-        }
 
         if (!currentUser) {
             // Show login required message
