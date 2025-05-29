@@ -17,6 +17,13 @@ if (!$login || !$email || !$password) {
     exit;
 }
 
+// Validate password
+if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/', $password)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Hasło musi zawierać minimum 8 znaków, w tym jedną dużą literę, jedną małą literę oraz jedną cyfrę']);
+    exit;
+}
+
 try {
     // Sprawdź, czy użytkownik już istnieje
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");

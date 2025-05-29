@@ -54,6 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorMessage.style.display = 'block';
                 return;
             }
+
+            if (!login) {
+                errorMessage.textContent = 'Login jest wymagany';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            if (!email) {
+                errorMessage.textContent = 'Email jest wymagany';
+                errorMessage.style.display = 'block';
+                return;
+            }
         }
 
         console.log("Wysyłam dane logowania:", { email, password, login });
