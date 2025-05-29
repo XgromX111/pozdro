@@ -46,6 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = passwordInput.value.trim();
         let login = isSignUp ? loginInput.value.trim() : '';
 
+        // Password validation for registration
+        if (isSignUp) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(password)) {
+                errorMessage.textContent = 'Hasło musi zawierać minimum 8 znaków, w tym jedną dużą literę, jedną małą literę oraz jedną cyfrę';
+                errorMessage.style.display = 'block';
+                return;
+            }
+        }
+
         console.log("Wysyłam dane logowania:", { email, password, login });
 
         const url = isSignUp ? 'register.php' : 'login.php';
