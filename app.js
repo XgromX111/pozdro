@@ -136,11 +136,12 @@ async function isInWatchlist(movieId) {
 }
 
 // Debug function to check watchlist status
-function debugWatchlist() {
+async function debugWatchlist() {
   console.log('=== WATCHLIST DEBUG ===');
   console.log('Current URL:', window.location.pathname);
   console.log('All cookies:', document.cookie);
-  console.log('Watchlist:', getWatchlist());
+  const watchlist = await getWatchlist();
+  console.log('Watchlist:', watchlist);
   console.log('Watchlist container exists:', !!document.getElementById('watchlist'));
   console.log('======================');
 }
@@ -151,8 +152,8 @@ window.addToWatchlist = addToWatchlist;
 window.removeFromWatchlist = removeFromWatchlist;
 window.getWatchlist = getWatchlist;
 
-function updateWatchlistUI() {
-  const watchlist = getWatchlist();
+async function updateWatchlistUI() {
+  const watchlist = await getWatchlist();
   const watchlistContainer = document.getElementById('watchlist');
 
   console.log('Updating watchlist UI:', watchlist);
@@ -174,15 +175,15 @@ function updateWatchlistUI() {
   }
 
   // Update featured movie watchlist button if it exists
-  setTimeout(() => {
-    updateFeaturedMovieButton();
+  setTimeout(async () => {
+    await updateFeaturedMovieButton();
   }, 10); // Small delay to ensure DOM has updated
 
   // Update any open movie overlay
   if (currentOverlay) {
     const movieId = parseInt(currentOverlay.querySelector('.movie-details-content').dataset.movieId);
     const watchlistButton = currentOverlay.querySelector('.watchlist-button');
-    const inWatchlist = isInWatchlist(movieId);
+    const inWatchlist = await isInWatchlist(movieId);
 
     if (watchlistButton) {
       watchlistButton.className = `btn ${inWatchlist ? 'btn-primary' : 'btn-secondary'} watchlist-button`;
@@ -201,9 +202,8 @@ function updateWatchlistUI() {
 // Create movie card HTML
 function createMovieCard(movie, index) {
   const primaryCategory = movie.categories[0];
-  const inWatchlist = isInWatchlist(index);
-  const watchlistButtonClass = inWatchlist ? 'btn-primary' : 'btn-secondary';
-  const watchlistText = inWatchlist ? 'Usuń z listy' : 'Dodaj do listy';
+  const watchlistButtonClass = 'btn-secondary'; // Default to add button state
+  const watchlistText = 'Dodaj do listy';
 
   return `
     <div class="movie-card" data-movie-id="${index}">
@@ -267,7 +267,7 @@ function initializeMoviesPage() {
 let currentFeaturedMovieIndex = null;
 
 // Update featured movie button
-function updateFeaturedMovieButton() {
+async function updateFeaturedMovieButton() {
   if (currentFeaturedMovieIndex === null) return;
 
   // Look for the button by finding it properly - it might have different classes after update
@@ -276,7 +276,7 @@ function updateFeaturedMovieButton() {
 
   const featuredWatchlistButton = featuredMovie.querySelector('.action-buttons .btn:not(.btn-primary[href])');
   if (featuredWatchlistButton) {
-    const inWatchlist = isInWatchlist(currentFeaturedMovieIndex);
+    const inWatchlist = await isInWatchlist(currentFeaturedMovieIndex);
 
     // Update class and content
     featuredWatchlistButton.className = `btn ${inWatchlist ? 'btn-primary' : 'btn-secondary'}`;
@@ -293,20 +293,20 @@ function updateFeaturedMovieButton() {
     featuredWatchlistButton.parentNode.replaceChild(newButton, featuredWatchlistButton);
 
     // Add new click handler
-    newButton.onclick = (e) => {
+    newButton.onclick = async (e) => {
       e.preventDefault();
-      console.log('Featured movie watchlist button clicked, current state:', inWatchlist);
-      if (isInWatchlist(currentFeaturedMovieIndex)) {
-        removeFromWatchlist(currentFeaturedMovieIndex);
+      console.log('Featured movie watchlist button clicked, current state:', await isInWatchlist(currentFeaturedMovieIndex));
+      if (await isInWatchlist(currentFeaturedMovieIndex)) {
+        await removeFromWatchlist(currentFeaturedMovieIndex);
       } else {
-        addToWatchlist(currentFeaturedMovieIndex);
+        await addToWatchlist(currentFeaturedMovieIndex);
       }
     };
   }
 }
 
 // Initialize featured movie
-function initializeFeaturedMovie() {
+async function initializeFeaturedMovie() {
   const featuredMovie = document.querySelector('.featured-movie');
   if (!featuredMovie) return;
 
@@ -316,7 +316,7 @@ function initializeFeaturedMovie() {
   }
 
   const randomMovie = movies[currentFeaturedMovieIndex];
-  const inWatchlist = isInWatchlist(currentFeaturedMovieIndex);
+  const inWatchlist = await isInWatchlist(currentFeaturedMovieIndex);
 
   featuredMovie.querySelector('.featured-backdrop').style.backgroundImage = `url(${randomMovie.imageUrl})`;
   featuredMovie.querySelector('.featured-title').textContent = randomMovie.title;
@@ -345,13 +345,13 @@ function initializeFeaturedMovie() {
     lucide.createIcons();
 
     // Add click handler
-    watchlistButton.onclick = (e) => {
+    watchlistButton.onclick = async (e) => {
       e.preventDefault();
-      console.log('Featured movie button clicked - current watchlist state:', isInWatchlist(currentFeaturedMovieIndex));
-      if (isInWatchlist(currentFeaturedMovieIndex)) {
-        removeFromWatchlist(currentFeaturedMovieIndex);
+      console.log('Featured movie button clicked - current watchlist state:', await isInWatchlist(currentFeaturedMovieIndex));
+      if (await isInWatchlist(currentFeaturedMovieIndex)) {
+        await removeFromWatchlist(currentFeaturedMovieIndex);
       } else {
-        addToWatchlist(currentFeaturedMovieIndex);
+        await addToWatchlist(currentFeaturedMovieIndex);
       }
     };
   }
@@ -365,8 +365,8 @@ function initializeWatchlistPage() {
     debugWatchlist();
 
     // Force update watchlist UI
-    setTimeout(() => {
-      updateWatchlistUI();
+    setTimeout(async () => {
+      await updateWatchlistUI();
     }, 100);
   }
 }
@@ -446,9 +446,9 @@ function initializeCategoryPage() {
 }
 
 // Populate movie rows with proper positioning of information
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Initialize featured movie
-  initializeFeaturedMovie();
+  await initializeFeaturedMovie();
 
   const recommendedMovies = document.getElementById('recommended-movies');
   const dramaMovies = document.getElementById('drama-movies');
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeWatchlistPage();
 
   // Initialize watchlist
-  updateWatchlistUI();
+  await updateWatchlistUI();
 
   // Set up movie overlay for any existing cards
   setupMovieOverlay();
@@ -527,7 +527,7 @@ function setupMovieOverlay() {
     // Mark card as having overlay setup
     card.setAttribute('data-overlay-setup', 'true');
 
-    card.addEventListener('click', () => {
+    card.addEventListener('click', async () => {
       // Remove existing overlay if it exists
       if (currentOverlay) {
         currentOverlay.remove();
@@ -538,7 +538,7 @@ function setupMovieOverlay() {
 
       const movieId = parseInt(card.dataset.movieId);
       const movieData = movies[movieId];
-      const inWatchlist = isInWatchlist(movieId);
+      const inWatchlist = await isInWatchlist(movieId);
 
       overlay.innerHTML = `
         <div class="movie-details-content" data-movie-id="${movieId}">
@@ -584,14 +584,14 @@ function setupMovieOverlay() {
       // Setup watchlist button functionality
       const watchlistButton = overlay.querySelector('.watchlist-button');
       if (watchlistButton) {
-        watchlistButton.onclick = (e) => {
+        watchlistButton.onclick = async (e) => {
           e.preventDefault();
           e.stopPropagation();
           console.log('Overlay watchlist button clicked for movie:', movieId);
-          if (isInWatchlist(movieId)) {
-            removeFromWatchlist(movieId);
+          if (await isInWatchlist(movieId)) {
+            await removeFromWatchlist(movieId);
           } else {
-            addToWatchlist(movieId);
+            await addToWatchlist(movieId);
           }
         };
       }
