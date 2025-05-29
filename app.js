@@ -79,7 +79,13 @@ async function getWatchlist() {
 
     if (!response.ok) throw new Error('Failed to fetch watchlist');
     const data = await response.json();
-    return data.watchlist || [];
+    
+    // Convert watchlist data to movie objects
+    const watchlistMovies = data.watchlist.map(item => {
+      return movies.find(movie => movie.title === item.movie_title);
+    }).filter(movie => movie !== undefined);
+    
+    return watchlistMovies;
   } catch (error) {
     console.error('Error fetching watchlist:', error);
     return [];
@@ -132,7 +138,7 @@ async function removeFromWatchlist(movieId) {
 
 async function isInWatchlist(movieId) {
   const watchlist = await getWatchlist();
-  return watchlist.some(item => item.movie_title === movies[movieId].title);
+  return watchlist.some(movie => movie.title === movies[movieId].title);
 }
 
 // Debug function to check watchlist status
@@ -163,9 +169,7 @@ async function updateWatchlistUI() {
     if (watchlist.length === 0) {
       watchlistContainer.innerHTML = '<div class="empty-watchlist">Twoja lista do obejrzenia jest pusta</div>';
     } else {
-      const watchlistMovies = watchlist.map(id => movies[id]).filter(movie => movie); // Filter out undefined
-      console.log('Watchlist movies to display:', watchlistMovies);
-      watchlistContainer.innerHTML = watchlistMovies.map((movie, index) => {
+      watchlistContainer.innerHTML = watchlist.map((movie) => {
         const originalIndex = movies.findIndex(m => m.title === movie.title);
         return createMovieCard(movie, originalIndex);
       }).join('');
