@@ -33,6 +33,25 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMessage.style.display = 'none';
     });
 
+    // Email validation function
+    async function validateEmail(email) {
+        try {
+            const response = await fetch('validate_email.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ email })
+            });
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error validating email:', error);
+            return { valid: false, error: 'Błąd weryfikacji email' };
+        }
+    }
+
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorMessage.style.display = 'none';
@@ -63,6 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!email) {
                 errorMessage.textContent = 'Email jest wymagany';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // Validate email for registration
+            const emailValidation = await validateEmail(email);
+            if (!emailValidation.valid) {
+                errorMessage.textContent = emailValidation.error;
                 errorMessage.style.display = 'block';
                 return;
             }
